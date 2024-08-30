@@ -1,4 +1,3 @@
----
 name: static-website
 "on":
   pull_request:
@@ -87,20 +86,34 @@ jobs:
           echo "STAGING=${ID_DOCKER}-staging" >> $GITHUB_ENV
           echo "PRODUCTION=${ID_DOCKER}-production" >> $GITHUB_ENV
 
+      - name: Set Heroku Stack to Container for Staging
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku stack:set container -a ${STAGING}
+
       - name: Deploy Staging
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          heroku container:login
-          heroku create ${STAGING}  || echo "project already exist"
-          heroku container:push -a ${STAGING} web
-          heroku container:release -a ${STAGING} web
+          echo ${HEROKU_API_KEY} | docker login --username=_ --password-stdin registry.heroku.com
+          heroku create ${STAGING} || echo "project already exists"
+          docker tag ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} registry.heroku.com/${STAGING}/web
+          docker push registry.heroku.com/${STAGING}/web
+          heroku container:release web -a ${STAGING}
+
+      - name: Set Heroku Stack to Container for Production
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku stack:set container -a ${PRODUCTION}
 
       - name: Deploy PRODUCTION
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          heroku container:login
-          heroku create ${PRODUCTION}  || echo "project already exist"
-          heroku container:push -a ${PRODUCTION} web
-          heroku container:release -a ${PRODUCTION} web
+          echo ${HEROKU_API_KEY} | docker login --username=_ --password-stdin registry.heroku.com
+          heroku create ${PRODUCTION} || echo "project already exists"
+          docker tag ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} registry.heroku.com/${PRODUCTION}/web
+          docker push registry.heroku.com/${PRODUCTION}/web
+          heroku container:release web -a ${PRODUCTION}
