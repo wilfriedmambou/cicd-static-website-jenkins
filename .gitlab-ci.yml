@@ -5,8 +5,6 @@ on:
     branches:
       - main
       - test-cache
-#  schedule:
-#    - cron: "0 2 * * *"
 env:
   ID_DOCKER: "wilfriedmambou237"
   IMAGE_NAME: "staticwebsite"
@@ -85,7 +83,8 @@ jobs:
 
       - name: Install and configure Heroku CLI
         run: |
-          sudo apt install nodejs
+          sudo apt install -y nodejs
+          sudo apt install -y heroku
           echo "STAGING=${ID_DOCKER}-staging" >> $GITHUB_ENV
           echo "PRODUCTION=${ID_DOCKER}-production" >> $GITHUB_ENV
 
@@ -96,7 +95,7 @@ jobs:
 
       - name: Create Staging App if not exists
         run: |
-          heroku create ${STAGING} || true
+          heroku apps:info -a ${STAGING} || heroku create ${STAGING}
           heroku stack:set container -a ${STAGING}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
@@ -110,7 +109,7 @@ jobs:
 
       - name: Create PRODUCTION App if not exists
         run: |
-          heroku create ${PRODUCTION} || true
+          heroku apps:info -a ${PRODUCTION} || heroku create ${PRODUCTION}
           heroku stack:set container -a ${PRODUCTION}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
