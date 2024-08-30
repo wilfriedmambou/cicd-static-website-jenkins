@@ -88,14 +88,24 @@ jobs:
           echo "STAGING=${ID_DOCKER}-staging" >> $GITHUB_ENV
           echo "PRODUCTION=${ID_DOCKER}-production" >> $GITHUB_ENV
 
-      - name: Heroku Login
-        run: heroku container:login
+      - name: Verify Heroku CLI Installation
+        run: heroku --version
+
+      - name: Print Environment Variables
+        run: |
+          echo "STAGING=${STAGING}"
+          echo "PRODUCTION=${PRODUCTION}"
+
+      - name: Test Heroku API Key
+        run: heroku apps
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
       - name: Create Staging App if not exists
         run: |
-          heroku apps:info -a ${STAGING} || heroku create ${STAGING}
+          if ! heroku apps:info -a ${STAGING} > /dev/null 2>&1; then
+            heroku create ${STAGING}
+          fi
           heroku stack:set container -a ${STAGING}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
@@ -107,14 +117,16 @@ jobs:
           heroku container:push -a ${STAGING} web
           heroku container:release -a ${STAGING} web
 
-      - name: Create PRODUCTION App if not exists
+      - name: Create Production App if not exists
         run: |
-          heroku apps:info -a ${PRODUCTION} || heroku create ${PRODUCTION}
+          if ! heroku apps:info -a ${PRODUCTION} > /dev/null 2>&1; then
+            heroku create ${PRODUCTION}
+          fi
           heroku stack:set container -a ${PRODUCTION}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
-      - name: Deploy PRODUCTION
+      - name: Deploy Production
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
