@@ -95,10 +95,11 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
       - name: Create Staging App if not exists
-        run: heroku create ${STAGING} || echo "App already exists"
-
-      - name: Set Heroku stack to container for Staging
-        run: heroku stack:set container -a ${STAGING}
+        run: |
+          heroku create ${STAGING} || true
+          heroku stack:set container -a ${STAGING}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
       - name: Deploy Staging
         env:
@@ -107,11 +108,16 @@ jobs:
           heroku container:push -a ${STAGING} web
           heroku container:release -a ${STAGING} web
 
+      - name: Create PRODUCTION App if not exists
+        run: |
+          heroku create ${PRODUCTION} || true
+          heroku stack:set container -a ${PRODUCTION}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+
       - name: Deploy PRODUCTION
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          heroku create ${PRODUCTION} || echo "App already exists"
-          heroku stack:set container -a ${PRODUCTION}
           heroku container:push -a ${PRODUCTION} web
           heroku container:release -a ${PRODUCTION} web
