@@ -93,8 +93,8 @@ jobs:
         run: |
           heroku container:login
           heroku create ${STAGING}  || echo "project already exist"
-          heroku stack:set container -a ${STAGING} web
-          heroku stack:set container -a ${STAGING} web
+          heroku stack:set container -a ${STAGING} 
+          heroku stack:set container -a ${STAGING} 
 
       - name: Deploy PRODUCTION
         env:
@@ -102,5 +102,5 @@ jobs:
         run: |
           heroku container:login
           heroku create ${PRODUCTION}  || echo "project already exist"
-          heroku stack:set container -a ${PRODUCTION} web
-          heroku stack:set container -a ${PRODUCTION} web
+          heroku stack:set container -a ${PRODUCTION} 
+          heroku stack:set container -a ${PRODUCTION} 
